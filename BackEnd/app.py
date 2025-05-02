@@ -175,6 +175,10 @@ def dashboard():
         'member_since': 'January 2023'
     }
     return render_template('dashboard.html', **user_data)
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     print("🚀 Connecting to MySQL...")
