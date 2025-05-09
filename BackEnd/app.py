@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_mysqldb import MySQL
 import os
 import base64
+from flask import session
 
 # Password Complexity Check
 def password_validation(password):
@@ -26,6 +27,7 @@ def hash_password(password, salt):
     return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
 
 app = Flask(__name__, template_folder='../FrontEnd', static_folder='../FrontEnd/static')
+app.secret_key = 'any_secure_random_string'
 
 
 
@@ -47,7 +49,8 @@ def create_table():
                     username VARCHAR(100) NOT NULL,
                     email VARCHAR(100) NOT NULL UNIQUE,
                     password VARCHAR(255) NOT NULL,
-                    salt VARCHAR(255) NOT NULL
+                    salt VARCHAR(255) NOT NULL,
+                    registration_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
             ''')
             mysql.connection.commit()
@@ -79,6 +82,7 @@ def login():
                 entered_hash = hash_password(password, stored_salt)
 
                 if entered_hash == stored_hash:
+                    session['username'] = username
                     return redirect(url_for('dashboard'))
                 else:
                     return render_template('LoginPage.html', error="Invalid credentials")
@@ -118,14 +122,36 @@ def register():
     return render_template('RegisterPage.html')
 
 
+# @app.route('/dashboard')
+# def dashboard():
+#     user_data = {
+#         'username': 'admin',
+#         'email': 'admin@example.com',
+#         'member_since': 'January 2023'
+#     }
+#     return render_template('dashboard.html', **user_data)
+
 @app.route('/dashboard')
 def dashboard():
-    user_data = {
-        'username': 'admin',
-        'email': 'admin@example.com',
-        'member_since': 'January 2023'
-    }
-    return render_template('dashboard.html', **user_data)
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    username = session['username']
+
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT email, registration_date FROM users WHERE username = %s", (username,))
+        user = cur.fetchone()
+        cur.close()
+
+        if user:
+            email, registration_date = user
+            return render_template('dashboard.html', username=username, email=email, member_since=registration_date.strftime('%B %Y'))
+
+    except Exception as e:
+        return f"Error loading dashboard: {str(e)}"
+
+    return redirect(url_for('login'))
 
 
 if __name__ == '__main__':
