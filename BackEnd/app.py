@@ -3,6 +3,9 @@ import os
 import base64
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_mysqldb import MySQL
+import smtplib
+from email.mime.text import MIMEText
+import random
 
 # Password Complexity Check
 def password_validation(password):
@@ -138,6 +141,11 @@ def change_password():
             flash("Old password is incorrect.", "error")
             return render_template('change_password.html')
 
+        # if new password is like the old password
+        if hash_password(new_pw, user[1]) == user[0]:
+            flash("New password cannot be the same as the old password.", "error")
+            return render_template('change_password.html')
+
         # confirm match
         if new_pw != confirm_pw:
             flash("New passwords do not match.", "error")
@@ -164,6 +172,43 @@ def change_password():
         return redirect(url_for('dashboard'))
 
     return render_template('change_password.html')
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        code = hashlib.sha1(str(random.randint(100000, 999999)).encode()).hexdigest()
+        session['reset_email'] = email
+        session['reset_code'] = code
+
+        msg = MIMEText(f"Your reset code is: {code}")
+        msg['Subject'] = 'Reset Code'
+        msg['From'] = 'your_email@example.com'
+        msg['To'] = email
+
+        try:
+            smtp = smtplib.SMTP('smtp.gmail.com', 587)
+            smtp.starttls()
+            smtp.login('your_email@example.com', 'your_email_password')
+            smtp.send_message(msg)
+            smtp.quit()
+        except Exception as e:
+            return f"Error sending email: {str(e)}"
+
+        return redirect(url_for('verify_reset_code'))
+
+    return render_template('forgot_password.html')
+
+@app.route('/verify_reset_code', methods=['GET', 'POST'])
+def verify_reset_code():
+    if request.method == 'POST':
+        entered = request.form['code']
+        if entered == session.get('reset_code'):
+            return redirect(url_for('change_password'))
+        else:
+            flash("Invalid code", "error")
+            return render_template('verify_reset_code.html')
+    return render_template('verify_reset_code.html')
 
 @app.route('/dashboard')
 def dashboard():
