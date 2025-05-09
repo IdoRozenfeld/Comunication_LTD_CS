@@ -25,13 +25,14 @@ def generate_salt():
 def hash_password(password, salt):
     return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../FrontEnd', static_folder='../FrontEnd/static')
+
 app.secret_key = os.environ.get('SECRET_KEY', 'replace-this-with-a-secure-random-string')
 
 # Database Configuration
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = '8822'
+app.config['MYSQL_PASSWORD'] = 'Id@645789'
 app.config['MYSQL_DB'] = 'myappdb'
 
 mysql = MySQL(app)

@@ -1,11 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Home</title>
+    <meta charset="UTF-8">
+    <title>Communication LTD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 </head>
 <body>
-    <h1>Welcome to the Flask Web App!</h1>
-    <a href="/login">Login</a>
-    <a href="/register">Register</a>
+<div class="container">
+    <div class="logo-section">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+    </div>
+    <div class="main-content">
+        <div class="button-group">
+            <a href="/login" class="btn">Log In</a>
+            <a href="/register" class="btn">Register</a>
+        </div>
+    <div class="illustration">
+        <img src="{{ url_for('static', filename='illustration.png') }}" alt="Illustration">
+    </div>
+</div>
 </body>
 </html>

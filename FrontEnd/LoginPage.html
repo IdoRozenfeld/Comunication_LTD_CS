@@ -1,23 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
 </head>
 <body>
-    <h2>Login</h2>
+
+<div class="logo">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+</div>
+
+<div class="login-container">
+    <img src="{{ url_for('static', filename='user-icon.png') }}" alt="User Icon">
+    <h2>LOG IN</h2>
 
     {% if error %}
-        <p style="color: red;">{{ error }}</p>
+    <p style="color: red;">{{ error }}</p>
     {% endif %}
 
     <form method="POST" action="/login">
-        <label for="username">Username:</label><br>
-        <input type="text" id="username" name="username" required><br><br>
-
-        <label for="password">Password:</label><br>
-        <input type="password" id="password" name="password" required><br><br>
-        <a href="/dashboard">Login</a>
-        <button type="submit">Login</button>
+        <input type="text" name="username" placeholder="Username..." required>
+        <input type="password" name="password" placeholder="Password..." required>
+        <button type="submit">Sign in</button>
     </form>
+
+    <a href="#" class="forgot">Forgot your password?</a>
+</div>
+
+<div class="illustration">
+    <img src="{{ url_for('static', filename='illustration.png') }}" alt="Illustration">
+</div>
+
 </body>
 </html>
