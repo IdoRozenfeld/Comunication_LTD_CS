@@ -183,13 +183,13 @@ def forgot_password():
 
         msg = MIMEText(f"Your reset code is: {code}")
         msg['Subject'] = 'Reset Code'
-        msg['From'] = 'your_email@example.com'
+        msg['From'] = 'idohitproject@gmail.com'
         msg['To'] = email
 
         try:
             smtp = smtplib.SMTP('smtp.gmail.com', 587)
             smtp.starttls()
-            smtp.login('your_email@example.com', 'your_email_password')
+            smtp.login('idohitproject@gmail.com', 'P@ssw0rd1!')
             smtp.send_message(msg)
             smtp.quit()
         except Exception as e:
