@@ -189,7 +189,7 @@ def forgot_password():
         try:
             smtp = smtplib.SMTP('smtp.gmail.com', 587)
             smtp.starttls()
-            smtp.login('idohitproject@gmail.com', 'P@ssw0rd1!')
+            smtp.login('idohitproject@gmail.com', 'xwidavuoferwjfef')
             smtp.send_message(msg)
             smtp.quit()
         except Exception as e:
@@ -204,11 +204,50 @@ def verify_reset_code():
     if request.method == 'POST':
         entered = request.form['code']
         if entered == session.get('reset_code'):
-            return redirect(url_for('change_password'))
+            session['code_verified'] = True
+            return redirect(url_for('reset_password'))
         else:
             flash("Invalid code", "error")
             return render_template('verify_reset_code.html')
     return render_template('verify_reset_code.html')
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    if 'reset_email' not in session or not session.get('code_verified'):
+        return redirect(url_for('forgot_password'))
+
+    if request.method == 'POST':
+        new_pw = request.form['new_password']
+        confirm_pw = request.form['confirm_password']
+
+        if new_pw != confirm_pw:
+            flash("Passwords do not match", "error")
+            return render_template('new_password.html')
+
+        if not password_validation(new_pw):
+            flash("Password must be at least 10 characters, include uppercase, lowercase, number, and special character.", "error")
+            return render_template('new_password.html')
+
+        new_salt = generate_salt()
+        new_hash = hash_password(new_pw, new_salt)
+
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute("UPDATE users SET password = %s, salt = %s WHERE email = %s",
+                        (new_hash, new_salt, session['reset_email']))
+            mysql.connection.commit()
+            cur.close()
+
+            session.pop('reset_email', None)
+            session.pop('reset_code', None)
+            session.pop('code_verified', None)
+
+            flash("Password updated successfully. Please log in.", "success")
+            return redirect(url_for('login'))
+        except Exception as e:
+            flash(f"Error: {str(e)}", "error")
+
+    return render_template('new_password.html')
 
 @app.route('/dashboard')
 def dashboard():
