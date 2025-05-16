@@ -37,7 +37,7 @@ body {
     flex: 1;
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-evenly;
     align-items: flex-end;
     padding: 0 60px 20px;
     box-sizing: border-box;
@@ -45,7 +45,7 @@ body {
 
 .btn {
     padding: 16px 40px;
-    background-color: #a8ccf2;
+    background-color:#7caee3;
     color: white;
     font-size: 24px;
     font-weight: bold;
@@ -61,17 +61,25 @@ body {
     flex-direction: column;
     gap: 20px;
     margin-bottom: 300px;
-    margin-left:300px;
+    margin-left:600px;
     align-items: center;
 }
 
 
 .btn:hover {
-    background-color: #7caee3;
+    background-color:  #144171;
 }
 
 .illustration img {
-    margin-bottom: 150px;
+   margin-bottom: 200px;
+    margin-left:100px;
+}
+.Networking{
+    position: absolute;
+    bottom: 30%;
+    left: 200px;
+}
+.Networking img{
     width: 400px;
-    height: auto;
+    max-width: 100%;
 }

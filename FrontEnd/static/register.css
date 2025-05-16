@@ -3,10 +3,20 @@ body {
     padding: 0;
     font-family: 'Segoe UI', sans-serif;
     background-color: #fff;
+    /*margin: 0;*/
+    /*padding: 0;*/
+    /*background-color: #ffffff;*/
+    /*font-family: 'Segoe UI', sans-serif;*/
+    /*display: flex;*/
+    /*flex-direction: row;*/
+    /*justify-content: space-evenly;*/
+    /*align-items: center;*/
+    /*min-height: 100vh;*/
+    /*position: relative;*/
 }
 
 .logo {
-    position: absolute;
+    /*position: absolute;*/
     top: 20px;
     left: 30px;
     display: flex;
@@ -17,15 +27,24 @@ body {
 
 .logo img {
     width: 300px;
+    margin-bottom: 5px;
 }
 
 
 .register-container {
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    /*align-items: center;*/
+    /*justify-content: center;*/
+    /*margin-top: 40px;*/
+     position:absolute;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    margin-top: 40px;
+    /*flex: 1;*/
+    z-index: 1;
 }
 
 .register-container img {
@@ -70,16 +89,31 @@ button {
 }
 
 button:hover {
-    background-color: #399ae5;
+    background-color: #144171;
 }
 
 .illustration {
-    position: absolute;
-    bottom: 0;
+    position:absolute;
     right: 0;
+    bottom: 40%;
+    /*transform: translateX(-10%);*/
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    /*align-items: end;*/
+    /*!*flex: 1;*!*/
+    /*z-index: 1;*/
 }
 
 .illustration img {
+    width: 400px;
+    max-width: 100%;
+}
+.Networking{
+    position: absolute;
+    bottom: 40%;
+    left: 0;
+}
+.Networking img{
     width: 400px;
     max-width: 100%;
 }

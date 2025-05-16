@@ -5,16 +5,17 @@ body {
     font-family: 'Segoe UI', sans-serif;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-evenly;
     align-items: center;
     min-height: 100vh;
+    position: relative;
 }
 
 
 .logo {
     position: absolute;
     top: 30px;
-    left: 30px;
+    /*right: 30px;*/
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -33,21 +34,25 @@ body {
 
 
 .login-container {
+    position:absolute;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 1;
+    /*flex: 1;*/
+    z-index: 1;
 }
 
 .login-container img {
     width: 80px;
-    margin-top: 60px;
+    margin-top: 30px;
 }
 
 .login-container h2 {
-    margin-top: 15px;
+    margin-top: 10px;
     font-size: 28px;
-    color: #a8ccf2;
+    color: #10315a;
     letter-spacing: 2px;
 }
 
@@ -55,8 +60,8 @@ body {
 form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
+    gap: 10px;
+    margin-top: 15px;
     width: 300px;
 }
 
@@ -94,7 +99,7 @@ button:hover {
 .forgot {
     margin-top: 10px;
     font-size: 14px;
-    color: #b3c8e1;
+    color: #000000;
     text-decoration: none;
     text-align: center;
 }
@@ -104,14 +109,27 @@ button:hover {
 }
 
 .illustration {
-    flex: 1;
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-end;
+    /*flex: 1;*/
+    /*display: flex;*/
+    /*justify-content: flex-end   ;*/
+    /*align-items: flex-end;*/
+    /*margin-left: 10%;*/
+    position: absolute;
+    /*bottom: 0;*/
+    right: 10%;
 }
 
 .illustration img {
     width: 100%;
     max-width: 400px;
     margin: 0 30px 30px 0;
+}
+.Networking{
+    position: absolute;
+    /*bottom: 0;*/
+    left: 10%;
+}
+.Networking img{
+    width: 400px;
+    max-width: 100%;
 }
