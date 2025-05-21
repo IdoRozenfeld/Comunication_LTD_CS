@@ -1,5 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Code</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='verify_reset_code.css') }}">
+</head>
+<body>
+
+<div class="logo">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+</div>
+
 <form action="/verify_reset_code" method="POST">
-    <label for="code">Enter verification code:</label>
+    <label for="code">ENTER VERIFICATION CODE HERE:</label>
     <input type="text" name="code" required>
-    <button type="submit">Verify</button>
+    <button type="submit">VERIFY</button>
 </form>
+
+<div class="illustration">
+    <img src="{{ url_for('static', filename='illustration.png') }}" alt="Illustration">
+</div>
+
+</body>
+</html>

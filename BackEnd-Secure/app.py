@@ -28,7 +28,7 @@ def generate_salt():
 def hash_password(password, salt):
     return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
 
-app = Flask(__name__, template_folder='../FrontEnd', static_folder='../FrontEnd/static')
+app = Flask(__name__, template_folder='../FrontEnd-Secure', static_folder='../FrontEnd-Secure/static')
 
 app.secret_key = os.environ.get('SECRET_KEY', 'replace-this-with-a-secure-random-string')
 
@@ -50,7 +50,8 @@ def create_table():
                     username VARCHAR(100) NOT NULL,
                     email VARCHAR(100) NOT NULL UNIQUE,
                     password VARCHAR(255) NOT NULL,
-                    salt VARCHAR(255) NOT NULL
+                    salt VARCHAR(255) NOT NULL,
+                    registration_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
             ''')
             mysql.connection.commit()
@@ -254,12 +255,22 @@ def dashboard():
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    user_data = {
-        'username': session['username'],
-        'email': 'admin@example.com',       # you can fetch real email if desired
-        'member_since': 'January 2023'
-    }
-    return render_template('dashboard.html', **user_data)
+    username = session['username']
+
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT email, registration_date FROM users WHERE username = %s", (username,))
+        user = cur.fetchone()
+        cur.close()
+
+        if user:
+            email, registration_date = user
+            return render_template('dashboard.html', username=username, email=email, member_since=registration_date.strftime('%B %Y'))
+
+    except Exception as e:
+        return f"Error loading dashboard: {str(e)}"
+
+    return redirect(url_for('login'))
 @app.route('/logout')
 def logout():
     session.pop('username', None)
