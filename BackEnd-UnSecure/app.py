@@ -29,7 +29,6 @@ def hash_password(password, salt):
     return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex()
 
 app = Flask(__name__, template_folder='../FrontEnd-UnSecure', static_folder='../FrontEnd-UnSecure/static')
-
 app.secret_key = os.environ.get('SECRET_KEY', 'replace-this-with-a-secure-random-string')
 
 # Database Configuration
@@ -52,7 +51,6 @@ def create_table():
                     password VARCHAR(255) NOT NULL,
                     salt VARCHAR(255) NOT NULL,
                     registration_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-
                 );
             ''')
             mysql.connection.commit()
@@ -60,6 +58,25 @@ def create_table():
             print("✅ 'users' table is ready!")
         except Exception as e:
             print(f"❌ Error creating table: {str(e)}")
+
+def ensure_registration_date_column():
+    with app.app_context():
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute("SHOW COLUMNS FROM users LIKE 'registration_date'")
+            result = cur.fetchone()
+            if not result:
+                cur.execute("""
+                    ALTER TABLE users
+                    ADD COLUMN registration_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                """)
+                mysql.connection.commit()
+                print("✅ 'registration_date' column added to 'users' table.")
+            else:
+                print("ℹ 'registration_date' column already exists.")
+            cur.close()
+        except Exception as e:
+            print(f"❌ Error checking/adding column: {e}")
 
 @app.route('/')
 def home():
@@ -122,50 +139,39 @@ def register():
 
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
-    # only logged-in users can change password
     if 'username' not in session:
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        old_pw     = request.form['old_password']
-        new_pw     = request.form['new_password']
+        old_pw = request.form['old_password']
+        new_pw = request.form['new_password']
         confirm_pw = request.form['confirm_password']
 
-        # fetch stored hash & salt
         cur = mysql.connection.cursor()
-        cur.execute("SELECT password, salt FROM users WHERE username = %s",
-                    (session['username'],))
+        cur.execute("SELECT password, salt FROM users WHERE username = %s", (session['username'],))
         user = cur.fetchone()
         cur.close()
 
-        # verify old password
         if not user or hash_password(old_pw, user[1]) != user[0]:
             flash("Old password is incorrect.", "error")
             return render_template('change_password.html')
 
-        # if new password is like the old password
         if hash_password(new_pw, user[1]) == user[0]:
             flash("New password cannot be the same as the old password.", "error")
             return render_template('change_password.html')
 
-        # confirm match
         if new_pw != confirm_pw:
             flash("New passwords do not match.", "error")
             return render_template('change_password.html')
 
-        # complexity check
         if not password_validation(new_pw):
-            flash("Password must be at least 10 characters, include uppercase, "
-                  "lowercase, a digit and a special character.", "error")
+            flash("Password must be at least 10 characters, include uppercase, lowercase, a digit and a special character.", "error")
             return render_template('change_password.html')
 
-        # generate & store new hash/salt
         new_salt = generate_salt()
         new_hash = hash_password(new_pw, new_salt)
         cur = mysql.connection.cursor()
-        cur.execute("""UPDATE users
-                       SET password = %s, salt = %s
-                       WHERE username = %s""",
+        cur.execute("UPDATE users SET password = %s, salt = %s WHERE username = %s",
                     (new_hash, new_salt, session['username']))
         mysql.connection.commit()
         cur.close()
@@ -251,7 +257,6 @@ def reset_password():
 
     return render_template('new_password.html')
 
-
 @app.route('/dashboard')
 def dashboard():
     if 'username' not in session:
@@ -281,6 +286,7 @@ def logout():
 
 if __name__ == '__main__':
     print("🚀 Connecting to MySQL...")
-    create_table()  # Ensure table exists before running Flask
+    create_table()
+    ensure_registration_date_column()
     print("🚀 Running Flask on http://127.0.0.1:5000/")
     app.run(debug=True)
