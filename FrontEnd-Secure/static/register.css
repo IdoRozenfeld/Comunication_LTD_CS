@@ -83,3 +83,20 @@ button:hover {
     width: 400px;
     max-width: 100%;
 }
+
+.illustration-background {
+    background-image: url("../static/illustration.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    position: absolute;
+    bottom: 0;
+    right: 0;
+
+    width: 400px;
+    height: 300px;
+
+    z-index: 0;
+    opacity: 0.3;
+}
