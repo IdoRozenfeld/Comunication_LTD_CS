@@ -7,19 +7,9 @@ import smtplib
 from email.mime.text import MIMEText
 import random
 
-# Password Complexity Check
-def password_validation(password):
-    if len(password) < 10:
-        return False
-    if not any(c.isupper() for c in password):
-        return False
-    if not any(c.islower() for c in password):
-        return False
-    if not any(c.isdigit() for c in password):
-        return False
-    if not any(c in '!@#$%^&*()-_+=' for c in password):
-        return False
-    return True
+from config import password_validation, is_password_reused, update_password_history, record_failed_attempt, is_user_locked
+
+# Password Complexity Check (moved to config.py)
 
 # Utility functions for salt and password hashing
 def generate_salt():
@@ -88,6 +78,11 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
+        from config import is_user_locked, record_failed_attempt
+
+        if is_user_locked(username):
+            return render_template('LoginPage.html', error="User is locked for 30 minutes due to failed attempts.")
+
         try:
             cur = mysql.connection.cursor()
             cur.execute("SELECT password, salt FROM users WHERE username = %s", (username,))
@@ -102,8 +97,10 @@ def login():
                     session['username'] = username
                     return redirect(url_for('dashboard'))
                 else:
+                    record_failed_attempt(username)
                     return render_template('LoginPage.html', error="Invalid credentials")
             else:
+                record_failed_attempt(username)
                 return render_template('LoginPage.html', error="User not found")
 
         except Exception as e:
