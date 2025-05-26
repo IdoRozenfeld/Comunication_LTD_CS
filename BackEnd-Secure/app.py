@@ -7,6 +7,15 @@ import smtplib
 from email.mime.text import MIMEText
 import random
 
+from config import (
+    password_validation,
+    is_password_reused,
+    update_password_history,
+    record_failed_attempt,
+    is_user_locked
+)
+
+
 # Password Complexity Check
 def password_validation(password):
     if len(password) < 10:
@@ -67,8 +76,11 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username')  # שימוש ב-get כדי למנוע KeyError
+        password = request.form.get('password')
+
+        if is_user_locked(username):
+            return render_template('LoginPage.html', error='Account locked. Try again in 30 minutes.')
 
         try:
             cur = mysql.connection.cursor()
@@ -84,6 +96,7 @@ def login():
                     session['username'] = username
                     return redirect(url_for('dashboard'))
                 else:
+                    record_failed_attempt(username)
                     return render_template('LoginPage.html', error="Invalid credentials")
             else:
                 return render_template('LoginPage.html', error="User not found")
@@ -119,8 +132,72 @@ def register():
 
     return render_template('RegisterPage.html')
 
+
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
+    # only logged-in users can change password
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        old_pw     = request.form['old_password']
+        new_pw     = request.form['new_password']
+        confirm_pw = request.form['confirm_password']
+
+        # fetch stored hash & salt
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT password, salt FROM users WHERE username = %s",
+                    (session['username'],))
+        user = cur.fetchone()
+        cur.close()
+
+        # verify old password
+        if not user or hash_password(old_pw, user[1]) != user[0]:
+            flash("Old password is incorrect.", "error")
+            return render_template('change_password.html')
+
+        # if new password is like the old password
+        if hash_password(new_pw, user[1]) == user[0]:
+            flash("New password cannot be the same as the old password.", "error")
+            return render_template('change_password.html')
+
+        # check history
+        if is_password_reused(session['username'], hash_password(new_pw, user[1])):
+            flash("You cannot reuse your last 3 passwords.", "error")
+            return render_template('change_password.html')
+
+        # confirm match
+        if new_pw != confirm_pw:
+            flash("New passwords do not match.", "error")
+            return render_template('change_password.html')
+
+        # complexity check
+        if is_password_reused(session['reset_email'], hash_password(new_pw, new_salt)):
+            flash("You cannot reuse your last 3 passwords.", "error")
+        return render_template('new_password.html')
+
+    if not password_validation(new_pw):
+            flash("Password must be at least 10 characters, include uppercase, "
+                  "lowercase, a digit and a special character.", "error")
+            return render_template('change_password.html')
+
+        # generate & store new hash/salt
+            new_salt = generate_salt()
+            new_hash = hash_password(new_pw, new_salt)
+            cur = mysql.connection.cursor()
+            cur.execute("""UPDATE users
+                       SET password = %s, salt = %s
+                       WHERE username = %s""",
+                    (new_hash, new_salt, session['username']))
+            mysql.connection.commit()
+            update_password_history(session['username'], new_hash)
+            cur.close()
+
+    flash("Password changed successfully!", "success")
+    return redirect(url_for('dashboard'))
+
+    return render_template('change_password.html')
+
     # only logged-in users can change password
     if 'username' not in session:
         return redirect(url_for('login'))
