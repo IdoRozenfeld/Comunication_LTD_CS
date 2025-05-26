@@ -86,7 +86,7 @@
 </head>
 <body>
 
-<!-- לוגו -->
+<!-- logo -->
 <div class="logo">
     <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
 </div>
@@ -94,6 +94,7 @@
 <!-- Navigation Bar -->
 <div class="navbar">
     <a href="/">Home</a>
+    <a href="/change_password">Change Password</a>
     <a href="/logout">Logout</a>
 </div>
 
@@ -109,9 +110,6 @@
         <p><strong>Member since:</strong> {{ member_since }}</p>
     </div>
 
-    <!-- שינוי סיסמה -->
-    <a href="/change_password" class="logout-button" style="background-color:#007BFF;">Change Password</a>
-
     <!-- Recent Activities -->
     <div class="profile-card">
         <h2>Your Recent Activities</h2>
@@ -122,9 +120,6 @@
         </ul>
     </div>
 </div>
-
-<!-- Logout Button at Bottom -->
-<a href="/logout" class="logout-button">Logout</a>
 
 </body>
 </html>
