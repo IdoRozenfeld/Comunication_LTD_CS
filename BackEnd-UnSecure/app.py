@@ -173,7 +173,7 @@ def change_password():
         mysql.connection.commit()
         cur.close()
 
-        flash("Password changed successfully!", "success")
+        # flash("Password changed successfully!", "success")
         return redirect(url_for('dashboard'))
 
     return render_template('change_password.html')
