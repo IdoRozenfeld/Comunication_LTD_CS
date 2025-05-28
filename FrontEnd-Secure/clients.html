@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manage Clients</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        padding: 40px;
+        background-color: #f4f4f4;
+    }
+
+    h1, h2 {
+        color: #333;
+    }
+
+    form {
+        margin-bottom: 30px;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    input, select, button {
+        padding: 10px;
+        margin-right: 10px;
+        margin-top: 10px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    table th, table td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: center;
+    }
+
+    table th {
+        background-color: #f0f0f0;
+    }
+
+    .delete-button {
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    .delete-button:hover {
+        background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Client Management</h1>
+
+<!-- 🔍 Search Client -->
+<form action="{{ url_for('search_client') }}" method="get">
+  <h2>Search Client by Personal ID</h2>
+  <input type="text" name="personal_id" placeholder="Enter Personal ID" required>
+  <button type="submit">Search</button>
+</form>
+
+<!-- ➕ Add Client -->
+<form method="post">
+  <h2>Add New Client</h2>
+  <input type="text" name="personal_id" placeholder="Personal ID" required>
+  <input type="text" name="first_name" placeholder="First Name" required>
+  <input type="text" name="last_name" placeholder="Last Name" required>
+  <select name="product_type" required>
+    <option value="">Select Product</option>
+    <option value="internet">Internet</option>
+    <option value="phone">Phone</option>
+    <option value="tv">TV</option>
+    <option value="triple">Triple</option>
+  </select>
+  <button type="submit">Add Client</button>
+</form>
+
+<!-- 📋 List Clients -->
+<h2>All Clients</h2>
+<table>
+  <thead>
+  <tr>
+    <th>Personal ID</th>
+    <th>First Name</th>
+    <th>Last Name</th>
+    <th>Product Type</th>
+    <th>Action</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for client in clients %}
+  <tr>
+    <td>{{ client[0] }}</td>
+    <td>{{ client[1] }}</td>
+    <td>{{ client[2] }}</td>
+    <td>{{ client[3] }}</td>
+    <td>
+      <a href="{{ url_for('delete_client', personal_id=client[0]) }}" class="delete-button"
+         onclick="return confirm('Are you sure you want to delete this client?');">
+        Delete
+      </a>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+</body>
+</html>

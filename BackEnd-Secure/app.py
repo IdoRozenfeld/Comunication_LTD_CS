@@ -68,6 +68,48 @@ def create_table():
             print("✅ 'users' table is ready!")
         except Exception as e:
             print(f"❌ Error creating table: {str(e)}")
+def create_clients_table():
+    with app.app_context():
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute('''
+                CREATE TABLE IF NOT EXISTS clients (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    personal_id VARCHAR(20) UNIQUE,
+                    first_name VARCHAR(100) NOT NULL,
+                    last_name VARCHAR(100) NOT NULL,
+                    product_type ENUM('internet', 'phone', 'tv', 'triple') NOT NULL
+                );
+            ''')
+            mysql.connection.commit()
+            cur.close()
+            print("✅ 'clients' table is ready!")
+        except Exception as e:
+            print(f"❌ Error creating 'clients' table: {str(e)}")
+
+
+def insert_dummy_clients():
+    dummy_clients = [
+        ('123456789', 'Ido', 'Rozenfeld', 'internet'),
+        ('111222333', 'Karina', 'Haimov', 'phone'),
+        ('456789123', 'Or', 'Drobin', 'tv'),
+        ('789123456', 'Liat', 'Simhaev', 'internet'),
+        ('456789321', 'Lev', 'Kretz', 'tv'),
+        ('987654321', 'Shay', 'Shay', 'triple'),
+    ]
+
+    with app.app_context():
+        try:
+            cur = mysql.connection.cursor()
+            cur.executemany('''
+                INSERT IGNORE INTO clients (personal_id, first_name, last_name, product_type)
+                VALUES (%s, %s, %s, %s)
+            ''', dummy_clients)
+            mysql.connection.commit()
+            cur.close()
+            print("✅ Dummy clients inserted.")
+        except Exception as e:
+            print(f"❌ Error inserting dummy clients: {str(e)}")
 
 @app.route('/')
 def home():
@@ -348,6 +390,62 @@ def dashboard():
         return f"Error loading dashboard: {str(e)}"
 
     return redirect(url_for('login'))
+@app.route('/clients', methods=['GET', 'POST'])
+def manage_clients():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    cur = mysql.connection.cursor()
+
+    if request.method == 'POST':
+        personal_id = request.form['personal_id']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        product_type = request.form['product_type']
+
+        try:
+            cur.execute('INSERT INTO clients (personal_id, first_name, last_name, product_type) VALUES (%s, %s, %s, %s)',
+                        (personal_id, first_name, last_name, product_type))
+            mysql.connection.commit()
+        except Exception as e:
+            flash(f"error adding: {str(e)}", "error")
+
+    cur.execute('SELECT personal_id, first_name, last_name, product_type, id FROM clients')
+    clients = cur.fetchall()
+    cur.close()
+
+    return render_template('clients.html', clients=clients)
+
+@app.route('/search_client', methods=['GET'])
+def search_client():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    personal_id = request.args.get('personal_id')
+
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT personal_id, first_name, last_name, product_type FROM clients WHERE personal_id = %s", (personal_id,))
+        client = cur.fetchone()
+        cur.close()
+
+        if client:
+            return render_template('client_detail.html', client=client)
+        else:
+            return f"No client found with Personal ID: {personal_id}"
+
+    except Exception as e:
+        return f"Error searching client: {str(e)}"
+
+
+@app.route('/delete_client/<personal_id>')
+def delete_client(personal_id):
+    cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM clients WHERE personal_id = %s', (personal_id,))
+    mysql.connection.commit()
+    cur.close()
+    return redirect(url_for('manage_clients'))
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)
