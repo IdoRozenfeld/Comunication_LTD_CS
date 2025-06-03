@@ -121,7 +121,7 @@ Visit: [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
 ---
 
-## 🖼️ Screenshots (suggested placeholders)
+## 🖼️ Screenshots
 ![image](https://github.com/user-attachments/assets/31d11db1-0d1b-4290-8df9-d197acd48ac9)
 
 ### 🔐 Login Page
