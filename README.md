@@ -122,12 +122,15 @@ Visit: [http://127.0.0.1:5000](http://127.0.0.1:5000)
 ---
 
 ## 🖼️ Screenshots (suggested placeholders)
+![image](https://github.com/user-attachments/assets/31d11db1-0d1b-4290-8df9-d197acd48ac9)
 
 ### 🔐 Login Page
-> ![Login Screenshot](screenshots/login_page.png)
+![image](https://github.com/user-attachments/assets/47905a62-4bf3-49ca-b2a5-c7516da14f79)
+
 
 ### 📊 Dashboard
-> ![Dashboard Screenshot](screenshots/dashboard.png)
+![image](https://github.com/user-attachments/assets/751fb884-93f2-47d4-b4ce-906296da8507)
+
 
 
 
@@ -148,6 +151,6 @@ This project fulfills the following secure development requirements:
 
 ---
 
-## 👩‍💻 Developed by Ido Rosenfeld, Karina Haimov, Liat Simhayev, Shay yeffet, Lev Kravtsov, Or Dorbin
+## 👩‍💻 Developed by Ido Rozenfeld, Karina Haimov, Liat Simhayev, Shay yeffet, Lev Kravtsov, Or Dorbin
 
 Holon Institute of Technology – Cyber Security Final Project
