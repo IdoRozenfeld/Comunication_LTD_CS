@@ -22,7 +22,7 @@ app = Flask(__name__, template_folder='../FrontEnd-UnSecure', static_folder='../
 app.secret_key = os.environ.get('SECRET_KEY', 'replace-this-with-a-secure-random-string')
 
 # Database Configuration
-app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_HOST'] = '127.0.0.1'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'Id@645789'
 app.config['MYSQL_DB'] = 'myappdb'
@@ -118,35 +118,59 @@ def insert_dummy_clients():
 def home():
     return render_template('index.html')
 
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     if request.method == 'POST':
+#         username = request.form['username']
+#         password = request.form['password']
+#
+#         from config import is_user_locked, record_failed_attempt
+#
+#         if is_user_locked(username):
+#             return render_template('LoginPage.html', error="User is locked for 30 minutes due to failed attempts.")
+#
+#         try:
+#             cur = mysql.connection.cursor()
+#             cur.execute("SELECT password, salt FROM users WHERE username = %s", (username,))
+#             user = cur.fetchone()
+#             cur.close()
+#
+#             if user:
+#                 stored_hash, stored_salt = user
+#                 entered_hash = hash_password(password, stored_salt)
+#
+#                 if entered_hash == stored_hash:
+#                     session['username'] = username
+#                     return redirect(url_for('dashboard'))
+#                 else:
+#                     record_failed_attempt(username)
+#                     return render_template('LoginPage.html', error="Invalid credentials")
+#             else:
+#                 record_failed_attempt(username)
+#                 return render_template('LoginPage.html', error="User not found")
+#
+#         except Exception as e:
+#             return render_template('LoginPage.html', error=f"Error: {str(e)}")
+#
+#     return render_template('LoginPage.html')
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        from config import is_user_locked, record_failed_attempt
-
-        if is_user_locked(username):
-            return render_template('LoginPage.html', error="User is locked for 30 minutes due to failed attempts.")
-
         try:
             cur = mysql.connection.cursor()
+
+            # VULNERABLE: no password check (intended for XSS testing)
             cur.execute("SELECT password, salt FROM users WHERE username = %s", (username,))
             user = cur.fetchone()
             cur.close()
 
             if user:
-                stored_hash, stored_salt = user
-                entered_hash = hash_password(password, stored_salt)
-
-                if entered_hash == stored_hash:
-                    session['username'] = username
-                    return redirect(url_for('dashboard'))
-                else:
-                    record_failed_attempt(username)
-                    return render_template('LoginPage.html', error="Invalid credentials")
+                session['username'] = username
+                return redirect(url_for('dashboard'))
             else:
-                record_failed_attempt(username)
                 return render_template('LoginPage.html', error="User not found")
 
         except Exception as e:
@@ -154,6 +178,32 @@ def login():
 
     return render_template('LoginPage.html')
 
+
+# @app.route('/register', methods=['GET', 'POST'])
+# def register():
+#     if request.method == 'POST':
+#         username = request.form['username']
+#         email = request.form['email']
+#         password = request.form['password']
+#
+#         if not password_validation(password):
+#             return render_template('RegisterPage.html',
+#                                    error="Password must be at least 10 characters long, include an uppercase letter, a lowercase letter, a number, and a special character.")
+#
+#         salt = generate_salt()
+#         hashed_password = hash_password(password, salt)
+#
+#         try:
+#             cur = mysql.connection.cursor()
+#             cur.execute("INSERT INTO users (username, email, password, salt) VALUES (%s, %s, %s, %s)",
+#                         (username, email, hashed_password, salt))
+#             mysql.connection.commit()
+#             cur.close()
+#             return redirect(url_for('login'))
+#         except Exception as e:
+#             return render_template('RegisterPage.html', error=f"Error: {str(e)}")
+#
+#     return render_template('RegisterPage.html')
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -170,15 +220,25 @@ def register():
 
         try:
             cur = mysql.connection.cursor()
-            cur.execute("INSERT INTO users (username, email, password, salt) VALUES (%s, %s, %s, %s)",
-                        (username, email, hashed_password, salt))
+
+            # 🚨 VULNERABLE TO SQLi: Using raw string interpolation
+            query = f"""
+                INSERT INTO users (username, email, password, salt)
+                VALUES ('{username}', '{email}', '{hashed_password}', '{salt}')
+            """
+            print("DEBUG SQL:", query)  # Optional for visibility during testing
+            cur.execute(query)
             mysql.connection.commit()
             cur.close()
+
             return redirect(url_for('login'))
+
         except Exception as e:
             return render_template('RegisterPage.html', error=f"Error: {str(e)}")
 
     return render_template('RegisterPage.html')
+
+
 
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
@@ -322,6 +382,31 @@ def dashboard():
 
     return redirect(url_for('login'))
 
+# @app.route('/clients', methods=['GET', 'POST'])
+# def manage_clients():
+#     if 'username' not in session:
+#         return redirect(url_for('login'))
+#
+#     cur = mysql.connection.cursor()
+#
+#     if request.method == 'POST':
+#         personal_id = request.form['personal_id']
+#         first_name = request.form['first_name']
+#         last_name = request.form['last_name']
+#         product_type = request.form['product_type']
+#
+#         try:
+#             cur.execute('INSERT INTO clients (personal_id, first_name, last_name, product_type) VALUES (%s, %s, %s, %s)',
+#                         (personal_id, first_name, last_name, product_type))
+#             mysql.connection.commit()
+#         except Exception as e:
+#             flash(f"error adding: {str(e)}", "error")
+#
+#     cur.execute('SELECT personal_id, first_name, last_name, product_type, id FROM clients')
+#     clients = cur.fetchall()
+#     cur.close()
+#
+#     return render_template('clients.html', clients=clients)
 @app.route('/clients', methods=['GET', 'POST'])
 def manage_clients():
     if 'username' not in session:
@@ -336,18 +421,47 @@ def manage_clients():
         product_type = request.form['product_type']
 
         try:
-            cur.execute('INSERT INTO clients (personal_id, first_name, last_name, product_type) VALUES (%s, %s, %s, %s)',
-                        (personal_id, first_name, last_name, product_type))
+            # 🚨 VULNERABLE: No sanitization, no parameterization
+            query = f"""
+                INSERT INTO clients (personal_id, first_name, last_name, product_type)
+                VALUES ('{personal_id}', '{first_name}', '{last_name}', '{product_type}')
+            """
+            print("DEBUG SQL:", query)  # For test visibility
+            cur.execute(query)
             mysql.connection.commit()
         except Exception as e:
             flash(f"error adding: {str(e)}", "error")
 
-    cur.execute('SELECT personal_id, first_name, last_name, product_type, id FROM clients')
+    # Also make the SELECT vulnerable for demo
+    query_all = "SELECT personal_id, first_name, last_name, product_type, id FROM clients"
+    cur.execute(query_all)
     clients = cur.fetchall()
     cur.close()
 
     return render_template('clients.html', clients=clients)
 
+
+
+# @app.route('/search_client', methods=['GET'])
+# def search_client():
+#     if 'username' not in session:
+#         return redirect(url_for('login'))
+#
+#     personal_id = request.args.get('personal_id')
+#
+#     try:
+#         cur = mysql.connection.cursor()
+#         cur.execute("SELECT personal_id, first_name, last_name, product_type FROM clients WHERE personal_id = %s", (personal_id,))
+#         client = cur.fetchone()
+#         cur.close()
+#
+#         if client:
+#             return render_template('client_detail.html', client=client)
+#         else:
+#             return f"No client found with Personal ID: {personal_id}"
+#
+#     except Exception as e:
+#         return f"Error searching client: {str(e)}"
 @app.route('/search_client', methods=['GET'])
 def search_client():
     if 'username' not in session:
@@ -357,7 +471,11 @@ def search_client():
 
     try:
         cur = mysql.connection.cursor()
-        cur.execute("SELECT personal_id, first_name, last_name, product_type FROM clients WHERE personal_id = %s", (personal_id,))
+
+        # 🚨 VULNERABLE TO SQL INJECTION
+        query = f"SELECT personal_id, first_name, last_name, product_type FROM clients WHERE personal_id = '{personal_id}'"
+        print("DEBUG QUERY:", query)  # Optional for debugging in terminal
+        cur.execute(query)
         client = cur.fetchone()
         cur.close()
 

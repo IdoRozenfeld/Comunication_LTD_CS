@@ -105,7 +105,7 @@
     <!-- Profile Information -->
     <div class="profile-card">
         <h2>Profile Information</h2>
-        <p><strong>Username:</strong> {{ username }}</p>
+        <p><strong>Username:</strong> {{ username|safe }}</p>  <!-- 🚨 XSS Vulnerability -->
         <p><strong>Email:</strong> {{ email }}</p>
         <p><strong>Member since:</strong> {{ member_since }}</p>
     </div>
